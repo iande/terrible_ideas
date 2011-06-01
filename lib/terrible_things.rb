@@ -1,5 +1,6 @@
-require "terrible_things/version"
-
 module TerribleThings
-  # Your code goes here...
 end
+
+require 'rubygems/text'
+require 'terrible_things/version'
+require 'terrible_things/kernel'

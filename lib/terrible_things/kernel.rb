@@ -3,6 +3,9 @@ module Kernel
     extend Gem::Text
   end
   
+  attr_reader :auto_correct
+  alias :auto_correct? :auto_correct
+  
   def enable_auto_correct
     @auto_correct = true
   end
@@ -13,14 +16,7 @@ module Kernel
     @auto_correct = false
   end
   
-  # We should definitely enable auto-correct by default.
-  # But we can't effectively test things that way :(
-  def auto_correct?
-    @auto_correct
-  end
-  
   def with_auto_correction &block
-    puts "Auto correcting?"
     orig_correct, @auto_correct = @auto_correct, true
     begin
       yield

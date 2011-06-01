@@ -89,6 +89,12 @@ shutting itself off.
 
 ## Future Features
 
+* Let's take probabilistic models to their natural conclusion: guessing
+  which arguments a user *meant* to pass to a method.
+  
+* Let's make NilClass into the Maybe monad, but we'll be kind and let people
+  turn it off.
+
 I should have more to put here by this weekend.  Maybe not, it's hard to
 say how long I want to keep this going.
 

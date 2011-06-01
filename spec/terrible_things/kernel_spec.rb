@@ -24,4 +24,11 @@ describe "kernel extensions" do
     object.disable_auto_correct
     lambda { object.my_stupneduos_method }.should raise_error(NameError)
   end
+  
+  it "should allow selective auto-correcting" do
+    object.auto_correct?.should be_false
+    inspected = object.with_auto_correction { object.object_iz }
+    object.auto_correct?.should be_false
+    inspected.should == object.object_id
+  end
 end

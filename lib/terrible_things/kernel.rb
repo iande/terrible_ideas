@@ -19,9 +19,18 @@ module Kernel
     @auto_correct
   end
   
-  def method_missing_with_auto_correct meth, *args, &block
+  def with_auto_correction &block
+    puts "Auto correcting?"
+    orig_correct, @auto_correct = @auto_correct, true
+    begin
+      yield
+    ensure
+      @auto_correct = orig_correct
+    end
+  end
+  
+  def method_missing_with_terrible_things meth, *args, &block
     meth_str = meth.to_s
-    
     what_you_really_meant = methods.sort_by do |m|
       Corrector.levenshtein_distance meth_str, m.to_s
     end.first
@@ -31,11 +40,10 @@ module Kernel
     if auto_correct?
       __send__ what_you_really_meant, *args, &block
     else
-      method_missing_without_auto_correct meth, *args, &block
+      method_missing_without_terrible_things meth, *args, &block
     end
   end
   
-  alias :method_missing_without_auto_correct :method_missing
-  alias :method_missing :method_missing_with_auto_correct
-  
+  alias :method_missing_without_terrible_things :method_missing
+  alias :method_missing :method_missing_with_terrible_things
 end

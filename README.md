@@ -118,6 +118,24 @@ While this method is certainly handy, we intend to make it even handier in
 the future.  Right now we are only trapping method invocations, but with a
 little luck, we will be able to capture more than that soon!
 
+### Monadic NilClass
+
+The Maybe monad is powerful stuff, and while
+[others have proposed custom classes](http://avdi.org/devblog/2011/05/30/null-objects-and-falsiness/)
+to encapsulate this behavior, doing so loses Ruby's notion of `nil` being
+`falsey`, so we bake this goodness right into NilClass!
+
+
+    def method_that_might_return_nil
+      # ...
+    end
+    
+    def method_using_monadic_nils
+      with_maybe do
+        method_that_might_return_nil.keen_instance_method.reverse
+      end
+    end
+
 ## Future Features
 
 * Let's take probabilistic models to their natural conclusion: guessing

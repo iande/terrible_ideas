@@ -1,6 +1,7 @@
 module TerribleThings
   
   # Let's be really sure about the methods we call.
+  # @todo Capture more than just method invocations
   class AreYouSure
     
     # we'll leave the special ones be

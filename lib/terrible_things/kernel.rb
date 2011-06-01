@@ -1,10 +1,18 @@
+# encoding: utf-8
+
 module Kernel
+  alias :λ :lambda
+  
   class Corrector
     extend Gem::Text
   end
   
   attr_reader :auto_correct
   alias :auto_correct? :auto_correct
+  
+  def enable_lazy_evaluation
+    TerribleThings::LazyProxy.enable
+  end
   
   def enable_auto_correct
     @auto_correct = true

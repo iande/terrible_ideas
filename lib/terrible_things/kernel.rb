@@ -25,13 +25,21 @@ module Kernel
     end
   end
   
+  def are_you_sure? &block
+    TerribleThings::AreYouSure.new &block
+  end
+  
+  def with_maybe &block
+    NilClass.with_maybe &block
+  end
+  
   def method_missing_with_terrible_things meth, *args, &block
     meth_str = meth.to_s
     what_you_really_meant = methods.sort_by do |m|
       Corrector.levenshtein_distance meth_str, m.to_s
     end.first
     
-    $stderr.puts "Hey, there's no method named: #{meth}!"
+    $stderr.puts "Hey, there's no method named: #{meth} on #{self.class}!"
     $stderr.puts "\tDid you mean: #{what_you_really_meant}?"
     if auto_correct?
       __send__ what_you_really_meant, *args, &block

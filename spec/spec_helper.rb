@@ -9,4 +9,5 @@ begin
 rescue LoadError
 end
 
+require 'stringio'
 require 'terrible_things'

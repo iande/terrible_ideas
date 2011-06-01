@@ -87,13 +87,44 @@ If you need further proof of auto-correction's capabilities, the method
 This gives auto-correction one last chance to prove its love to you before
 shutting itself off.
 
+### Write Code Confidently!
+
+How can you write "confident code" when you're not quite sure what wicked
+sorcery is being performed behind opaque method names?  Fear not, we're
+working on a solution that will let you code confidently with a clear
+conscience: meet `are_you_sure?`.
+
+    class MyModel < ActiveRecord::Base
+    
+      def self.recent min_created_at = nil   
+        # Who knows what dark arts are being performed by arel's
+        # "convenient" methods?
+        min_created_at ||= Time.now.advance(:days => -5)
+        are_you_sure? do
+          where "created_at >= ?", min_created_at
+        end
+      end
+    
+    end
+
+By forcing users to confirm method invocations, you are freed from all
+expectations and liabilities.  After all, if the end users confirm the
+method call, any blame for unintended results falls squarely on their
+shoulders.  By examining the shortcomings of EULA prompts, we opted to make
+"deny" the default behavior to prevent users from blindly pressing the
+return key!
+
+While this method is certainly handy, we intend to make it even handier in
+the future.  Right now we are only trapping method invocations, but with a
+little luck, we will be able to capture more than that soon!
+
 ## Future Features
 
 * Let's take probabilistic models to their natural conclusion: guessing
   which arguments a user *meant* to pass to a method.
-  
-* Let's make NilClass into the Maybe monad, but we'll be kind and let people
-  turn it off.
+
+* Do some "on-the-fly" benchmarking to identify what methods are taking too
+  long (or are too complex) and stop calling them for great scalability.
 
 I should have more to put here by this weekend.  Maybe not, it's hard to
 say how long I want to keep this going.

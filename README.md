@@ -136,6 +136,81 @@ to encapsulate this behavior, doing so loses Ruby's notion of `nil` being
       end
     end
 
+### Pretty Lazy
+
+Do you wish only the objects that you actually need would be instantiated?
+Don't you wish `map` only transformed those elements that actually get used
+later?  Well, wish no more:
+
+    enable_lazy_evaluation
+    arr = Array.new()
+
+    puts "Creating array"
+    puts "-"*15
+    10.times do |i|
+      arr << i
+    end
+
+    puts "Mapping array"
+    puts "-"*15
+    mapped = arr.map do |i|
+      puts "Working with #{i}"
+      i * 2
+    end
+
+    puts "Mapping again"
+    puts "-"*15
+    mapped2 = mapped.map do |i|
+      puts "Reworking with #{i}"
+      i + 3
+    end.take(3)
+
+    puts "Showing results"
+    puts "-"*15
+    puts mapped2.inspect
+
+When run, this example will produce output similar to the following:
+
+    Creating array
+    ---------------
+    Mapping array
+    ---------------
+    Mapping again
+    ---------------
+    Working with 0
+    Reworking with 0
+    Working with 1
+    Reworking with 2
+    Working with 2
+    Reworking with 4
+    Showing results
+    ---------------
+    [3, 5, 7]
+
+Looking for an exaple that's a little more concise?  How about this fella:
+
+    enable_lazy_evaluation
+    r = Range.new 0, (1/0.0)
+    puts r.map { |i| 2 * i + 7 }.take(6)
+    
+which prints:
+
+    7
+    9
+    11
+    13
+    15
+    17
+    
+Unfortunately, we can't ensure that all object instantiations are lazily
+evaluated as `[ 1, 2, 3]` and `{ a: 1, b: 2, c: 3}` are baked in to Ruby's
+grammar and don't rely on `Array.new` and `Hash.new`, respectively; however,
+we can get pretty close!
+
+How do we know when it's time to evaluate the lazy promise, you ask? It's
+very simple!  The only clear indication that you really need a value is when
+you call `#inspect` or `#to_s` on said value!
+
 ## Future Features
 
 * Let's take probabilistic models to their natural conclusion: guessing

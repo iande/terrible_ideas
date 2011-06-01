@@ -1,6 +1,9 @@
 # -*- encoding: utf-8 -*-
 Dir[File.expand_path('support', File.dirname(__FILE__)) + "/**/*.rb"].each { |f| require f }
 
+require 'stringio'
+$stderr = StringIO.new
+
 begin
   require 'simplecov'
   SimpleCov.start do
@@ -9,5 +12,4 @@ begin
 rescue LoadError
 end
 
-require 'stringio'
 require 'terrible_things'

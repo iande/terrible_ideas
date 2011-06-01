@@ -135,6 +135,21 @@ to encapsulate this behavior, doing so loses Ruby's notion of `nil` being
         method_that_might_return_nil.keen_instance_method.reverse
       end
     end
+    
+### Wrapped Instantiation
+
+If you believe that method decorating is powerful stuff, then I think you'll
+agree: you'd be hard pressed to find more power than what you get from
+decorating `Object::new`.  With TerribleThings, it's dead simple:
+
+    TCPSocket.push_new do |chain, klass|
+      $stdout.puts "A new TCP/IP Socket is being created!"
+      chain.call
+    end
+
+At some point or another, you will want to call the `chain` proc, if you
+eventually want a TCPSocket to be instantiated.  However, if you don't do it
+right away, you can get....
 
 ### Pretty Lazy
 
@@ -224,8 +239,9 @@ say how long I want to keep this going.
 
 ## Contributing
 
-It's important to me that any contributions be tested.  I'm currently using
-rspec, but given its verbose output when testing this gem, I'm open to
-other suggestions.  But, your code should be tested and have >=90% code
-coverage.  Contributions should also have the appearance of being
-useful, ASCII penises need not apply.
+Really?
+
+Really?
+
+I suppose if you want to, fork and send a pull request.  If what you've got
+shows promise, I'll probably merge it in.

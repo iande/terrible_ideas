@@ -49,6 +49,7 @@ module Kernel
     
     $stderr.puts "Hey, there's no method named: #{meth} on #{self.class}!"
     $stderr.puts "\tDid you mean: #{what_you_really_meant}?"
+    $stdout.puts caller
     if auto_correct?
       __send__ what_you_really_meant, *args, &block
     else

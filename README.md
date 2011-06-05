@@ -229,7 +229,8 @@ you call `#inspect` or `#to_s` on said value!
 ## Future Features
 
 * Let's take probabilistic models to their natural conclusion: guessing
-  which arguments a user *meant* to pass to a method.
+  which arguments a user *meant* to pass to a method, or determining the
+  appropriate type a method should return.
 
 * Do some "on-the-fly" benchmarking to identify what methods are taking too
   long (or are too complex) and stop calling them for great scalability.

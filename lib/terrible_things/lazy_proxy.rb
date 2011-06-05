@@ -1,108 +1,170 @@
 module TerribleThings
   # Giving Ruby the gift of lazy evaluation
   class LazyProxy < BasicObject
+    class Promise < BasicObject
+      def initialize prior, meth=nil, args=[], block=nil, trans=nil
+        @prior = prior
+        @method = meth
+        @args = args
+        @block = block
+        @trans = trans
+      end
+      
+      def stack meth, args=[], block=nil
+        Promise.new(self, meth, args, block)
+      end
+      
+      def apply block
+        Promise.new(self, nil, [], nil, block)
+      end
+      
+      def call
+        unless defined?(@fulfilled)
+          #$stdout.puts "Fulfilling: #{inspect}"
+          @fulfilled = @prior.call
+          @fulfilled = @fulfilled.__send__ @method, *@args, &@block if @method
+          @fulfilled = @trans.call(@fulfilled) if @trans
+        end
+        @fulfilled
+      end
+      
+      def inspect
+        if @fulfilled
+          "Just #{@fulfilled.class}"
+        elsif @method
+          "'#{@method.inspect}' [#{@prior.inspect}]"
+        elsif @trans
+          "Trans [#{@prior.inspect}]"
+        else
+          "Just Proc"
+        end
+      end
+      alias :to_s :inspect
+      
+      def is_a? t
+        t == Promise
+      end
+    end
     
     class << self
       def enable
         Object.push_new do |b, c|
-          if c && c < ::Enumerable
-            ::TerribleThings::LazyEach.new b
+          unless c <= ::Exception
+            new b, c
           else
-            new &b
+            b.call
           end
         end
       end
     end
     
-    def initialize &promise
-      @head = promise
+    def initialize block, wrap=nil
+      @promise = block.is_a?(Promise) ? block : Promise.new(block)
+      @wrapped = wrap
+      if wrap && wrap < ::Enumerable
+        class << self
+          include LazyEnumerable
+        end
+      end
     end
     
-    def fulfill_method? m
-      m.to_s =~ /^(to_s|inspect|to_str)$/
+    def tee
+      LazyProxy.new(@promise)
     end
 
     def method_missing meth, *args, &block
-      if fulfill_method? meth
-        __fulfill_and_send__ @head, meth, args, block
+      if [:to_s, :to_str, :inspect, :coerce].include?(meth)
+        @promise.call.__send__ meth, *args, &block
       else
-        @head = ::Kernel::lambda do |promise|
-          ::Kernel::lambda do
-            __fulfill_and_send__ promise, meth, args, block
-          end
-        end.call(@head)
-        self
+        @promise = @promise.stack(meth, args, block)
+        #$stdout.puts "Wound: #{@promise.inspect}"
+        self.tee
       end
+    end
+    
+    def promise
+      @promise
     end
     
     def class
       LazyProxy
     end
-    
-    private
-    def __fulfill_promise__ promise
-      promise.call
-    end
-    def __fulfill_and_send__ promise, meth, args, block
-      __fulfill_promise__(promise).__send__ meth, *args, &block
-    end
   end
   
-  class LazyEach < LazyProxy
-    include ::Enumerable
+  module LazyEnumerable
+    def map &block
+      LazyMapping.new self, &block
+    end
+    alias :collect :map
     
-    def initialize enum
-      super(&enum)
+    def select &block
+      LazyFiltering.new self, &block
+    end
+    alias :find_all :select
+    
+    def reject &block
+      select { |e| !block.call(e) }
     end
     
-    def map &block
-      ::TerribleThings::LazyMap.new @head, block
+    # Not optimal, but we'll get there eventually
+    def detect &block
+      select(&block).first
+    end
+    alias :find :detect
+  end
+  
+  class LazyEnumerator < BasicObject
+    include ::Enumerable
+    include LazyEnumerable
+    
+    def initialize enum
+      @enumerable = enum
+      @enum = enum.tee.to_enum
+    end
+    
+    def method_missing meth, *args, &block
+      @enum.tee.__send__ meth, *args, &block
     end
     
     def each &block
       if block
-        renum = __fulfill_and_send__(@head, :to_enum, [], nil)
+        self.rewind
         ::Kernel::loop do
-          yield renum.next
+          yield self.next
         end
-        self
-      else
-        self
+        self.rewind
       end
+      self
     end
     
-    def class
-      LazyEach
-    end
+    def rewind; @enum.rewind; end
+    def to_enum; self; end
+    def tee; self; end
   end
-  
-  class LazyMap < LazyEach
-    def initialize enum, trans
+
+  class LazyMapping < LazyEnumerator
+    def initialize enum, &trans
       super(enum)
-      @trans = trans
+      @transform = trans
     end
     
-    def each &block
-      super() do |v|
-        block.call @trans.call(v)
-      end
-    end
-    
-    def map &block
-      super do |v|
-        block.call @trans.call(v)
-      end
-    end
-    
-    def class
-      LazyMap
+    def next
+      @transform.call @enum.tee.next
     end
   end
   
-  class LazyReduce < LazyEach
-    def initialize enum, block
-      super
-      $stdout.puts "Building a reduction from #{enum}"
+  class LazyFiltering < LazyEnumerator
+    def initialize enum, &filter
+      super(enum)
+      @filter = filter
+    end
+    
+    # I don't see a way around calling here.
+    def next
+      ::Kernel::loop do
+        nx = @enum.tee.next
+        break nx if @filter.call(nx.promise.call)
+      end
     end
   end
 end
